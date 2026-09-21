@@ -1,37 +1,26 @@
 "use strict";
-const scenarios = {
-  natural: {query:"최근 한 달에 작성된 문서 찾아줘",filters:["문서","생성일 · 최근 1개월","C: 드라이브"],note:"자연어를 날짜와 파일 종류 조건으로 변환합니다.",rows:[['word','W','프로젝트_제안서.docx','C:\\업무\\프로젝트','248 KB'],['excel','X','월간_매출보고.xlsx','C:\\업무\\보고서','1.2 MB'],['pdf','P','서비스_소개서.pdf','C:\\업무\\자료','3.4 MB']]},
-  content: {query:'본문에 "계약금"이 들어간 PDF',filters:['PDF','본문 포함 · 계약금','색인된 문서'],note:'문서 속 단어와 구절을 PC의 본문 색인에서 찾습니다.',rows:[['pdf','P','용역_계약서.pdf','… 계약금은 총 금액의 30%로 …','420 KB'],['pdf','P','거래_약정서.pdf','… 계약금 지급일은 협의하여 …','186 KB'],['pdf','P','계약_체크리스트.pdf','… 계약금과 잔금 조건 확인 …','92 KB']]},
-  name: {query:'보고서',filters:['파일명 포함 · 보고서','모든 확장자','C: 드라이브'],note:'파일 이름을 검색하고, 결과를 우클릭해 바로 작업합니다.',rows:[['word','W','프로젝트_완료보고서.docx','C:\\업무\\프로젝트','536 KB'],['excel','X','월간_보고서.xlsx','C:\\업무\\보고서','1.2 MB'],['pdf','P','시장조사_보고서.pdf','C:\\업무\\자료','2.8 MB']]}
+const scenarios={
+search:{kicker:'FIND YOUR NEXT FILE',title:'기억나는 단서로 찾아보세요.',tag:'자연어 검색',query:'본문에 “계약금”이 들어간 PDF',filters:['PDF 문서','본문 포함 · 계약금','C: 드라이브'],columns:['파일 이름 / 일치 내용','수정일','크기'],rows:[['pdf','PDF','용역_계약서.pdf','… 계약금은 총 금액의 30%로 …','09.18','420 KB'],['pdf','PDF','거래_약정서.pdf','… 계약금 지급일은 협의하여 …','09.16','186 KB'],['pdf','PDF','계약_체크리스트.pdf','… 계약금과 잔금 조건 확인 …','09.12','92 KB']],note:'내용 검색 캐시는 드라이브당 최대 100MB. 캐시에 없는 문서도 원본을 읽어 검색합니다.'},
+space:{kicker:'UNDERSTAND YOUR STORAGE',title:'내 드라이브, 어디에 쓰고 있을까?',tag:'공간 현황',stats:[['C: 사용 중','312','GB'],['C: 여유 공간','188','GB']],bars:true,columns:['큰 파일','형식','크기'],rows:[['video','MOV','프로젝트_촬영원본.mov','C:\\영상\\촬영','동영상','12.4 GB'],['zip','ZIP','작업_백업.zip','C:\\백업','압축','8.2 GB']],note:'예시 수치입니다. 실제 화면에서는 드라이브 분석 후 큰 파일과 파일 형식별 사용량을 확인합니다.'},
+folders:{kicker:'FOLLOW THE SPACE',title:'큰 폴더부터, 한 단계씩.',tag:'폴더 용량',filters:['C: 드라이브','업무 폴더','크기가 큰 순서'],columns:['하위 폴더','파일 수','크기'],rows:[['folder','▤','영상 프로젝트','C:\\업무\\영상 프로젝트','128개','42.6 GB'],['folder','▤','디자인 자료','C:\\업무\\디자인 자료','842개','18.3 GB'],['folder','▤','완료 프로젝트','C:\\업무\\완료 프로젝트','316개','9.7 GB'],['folder','▤','문서','C:\\업무\\문서','1,204개','2.1 GB']],note:'하위 폴더와 파일 목록을 탐색하고, 필요하면 실제 점유량을 별도로 확인할 수 있습니다.'},
+duplicates:{kicker:'SAME CONTENT, DIFFERENT PLACES',title:'복사본이 쌓인 위치를 확인하세요.',tag:'중복 파일',filters:['100MB 이상','내용 비교','중복 그룹 예시'],hint:'같은 내용의 파일 2개 · 보관할 사본을 직접 확인하세요.',columns:['파일 이름','위치','크기'],rows:[['zip','ZIP','프로젝트_최종.zip','C:\\업무\\완료 프로젝트','업무','1.2 GB'],['zip','ZIP','프로젝트_최종 (1).zip','D:\\백업\\프로젝트','백업','1.2 GB']],note:'선택한 크기 이상의 파일 내용을 비교해 중복 그룹을 표시합니다. 자동으로 삭제하지 않습니다.'},
+timeline:{kicker:'PICK UP WHERE YOU LEFT OFF',title:'그날 작업했던 파일, 다시 만나기.',tag:'수정일 타임라인',calendar:true,columns:['9월 16일 수정한 파일','시간','크기'],rows:[['doc','W','프로젝트_제안서.docx','C:\\업무\\프로젝트','16:42','248 KB'],['xls','X','월간_매출보고.xlsx','C:\\업무\\보고서','14:18','1.2 MB'],['pdf','PDF','서비스_소개서.pdf','C:\\업무\\자료','10:05','3.4 MB']],note:'수정일 기준으로 파일을 모아 보여줍니다. 파일을 열람한 날짜나 실제 작업 이력을 의미하지 않습니다.'},
+cleanup:{kicker:'REVIEW BEFORE YOU REMOVE',title:'정리는 확인부터 시작합니다.',tag:'정리 도우미',filters:['다운로드','오래된 파일','후보 예시'],columns:['검토할 파일','수정일','크기'],rows:[['zip','ZIP','이전_배포자료.zip','C:\\Users\\사용자\\Downloads','03.12','840 MB'],['doc','EXE','이전_설치파일.exe','C:\\Users\\사용자\\Downloads','02.07','256 MB'],['pdf','PDF','지난_행사안내.pdf','C:\\Users\\사용자\\Downloads','01.21','4.2 MB']],note:'보관할 항목을 제외하고 선택한 일반 파일만 확인 후 휴지통 이동을 요청합니다. 이 예시는 파일을 변경하지 않습니다.'}
 };
-function showScenario(id){
-  const scenario=scenarios[id];
-  document.querySelectorAll('[data-demo]').forEach(button=>{const selected=button.dataset.demo===id;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
-  document.getElementById('demo-panel').setAttribute('aria-labelledby','tab-'+id);
-  document.getElementById('demo-query').textContent=scenario.query;
-  document.getElementById('demo-explanation').textContent=scenario.note;
-  const filters=document.getElementById('demo-filters');filters.replaceChildren();
-  scenario.filters.forEach(text=>{const span=document.createElement('span');span.textContent=text;filters.append(span);});
-  const results=document.getElementById('demo-results');results.replaceChildren();
-  scenario.rows.forEach(([kind,letter,name,path,size],i)=>{
-    const row=document.createElement('div');row.className='demo-row'+(i===0?' selected':'');
-    const icon=document.createElement('span');icon.className='file-type '+kind;icon.textContent=letter;
-    const description=document.createElement('div'),title=document.createElement('strong'),location=document.createElement('small');title.textContent=name;location.textContent=path;description.append(title,location);
-    const bytes=document.createElement('span');bytes.className='file-size';bytes.textContent=size;row.append(icon,description,bytes);results.append(row);
-  });
-  document.getElementById('demo-count').textContent=scenario.rows.length;
+const $=id=>document.getElementById(id);
+function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
+function renderScenario(id){
+ const s=scenarios[id];if(!s)return;document.querySelectorAll('[data-demo]').forEach(b=>{const selected=b.dataset.demo===id;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;});
+ $('demo-panel').setAttribute('aria-labelledby','tab-'+id);$('demo-kicker').textContent=s.kicker;$('demo-title').textContent=s.title;$('demo-tag').textContent=s.tag;$('demo-note').textContent=s.note;const c=$('demo-content');c.replaceChildren();
+ if(s.query){const box=el('div','search-box');box.append(el('span','','⌕'),el('b','',s.query),el('span','','검색'));c.append(box);}
+ if(s.stats){const stats=el('div','storage-overview');s.stats.forEach(([label,value,unit])=>{const item=el('div','demo-stat'),strong=el('strong','',value);strong.append(el('span','',unit));item.append(el('small','',label),strong);stats.append(item);});c.append(stats);}
+ if(s.bars){const bars=el('div','mini-bars storage-bars');bars.setAttribute('aria-hidden','true');for(let i=0;i<4;i++)bars.append(el('i'));const legend=el('div','storage-legend');['동영상 45%','문서 28%','압축 17%','기타 10%'].forEach(t=>legend.append(el('span','',t)));c.append(bars,legend);}
+ if(s.filters){const filters=el('div','filter-tags');s.filters.forEach(t=>filters.append(el('span','',t)));c.append(filters);}
+ if(s.hint)c.append(el('div','sample-hint',s.hint));
+ if(s.calendar){const days=el('div','timeline-days');['월','화','수','목','금','토','일'].forEach((day,i)=>{const cell=el('span',i===2?'active':'');cell.append(el('small','',day),document.createTextNode(String(14+i)));days.append(cell);});c.append(days);}
+ const table=el('table','sample-table');table.setAttribute('aria-label',s.tag+' 가상 데이터');const head=el('thead'),heading=el('tr');s.columns.forEach(t=>{const th=el('th','',t);th.scope='col';heading.append(th);});head.append(heading);const body=el('tbody');s.rows.forEach(([kind,icon,name,path,detail,size])=>{const tr=el('tr'),td=el('td'),line=el('div'),desc=el('span','file-description');desc.append(el('strong','',name),el('small','',path));line.append(el('span','file-icon '+kind,icon),desc);td.append(line);tr.append(td,el('td','',detail),el('td','',size));body.append(tr);});table.append(head,body);c.append(table);
 }
-const tabs=[...document.querySelectorAll('[data-demo]')];
-tabs.forEach((button,index)=>{
-  button.addEventListener('click',()=>showScenario(button.dataset.demo));
-  button.addEventListener('keydown',event=>{
-    let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=tabs.length-1;
-    if(next!==undefined){event.preventDefault();tabs[next].focus();showScenario(tabs[next].dataset.demo);}
-  });
-});
-let toastTimer;
-function toast(message){const element=document.getElementById('toast');element.textContent=message;element.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{element.hidden=true;},3000);}
-document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(button.dataset.copy);toast('검색 예시를 복사했습니다. QuickSearch에 붙여 넣으세요.');}
-  catch{toast('자동 복사를 사용할 수 없습니다. 아래 예시 문장을 선택해 복사해 주세요.');const range=document.createRange();range.selectNodeContents(button.firstElementChild);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}
-}));
+const tabs=[...document.querySelectorAll('[data-demo]')];tabs.forEach((b,i)=>{b.addEventListener('click',()=>renderScenario(b.dataset.demo));b.addEventListener('keydown',e=>{let n;if(['ArrowRight','ArrowDown'].includes(e.key))n=(i+1)%tabs.length;if(['ArrowLeft','ArrowUp'].includes(e.key))n=(i+tabs.length-1)%tabs.length;if(e.key==='Home')n=0;if(e.key==='End')n=tabs.length-1;if(n!==undefined){e.preventDefault();tabs[n].focus();renderScenario(tabs[n].dataset.demo);}});});
+const narrow=window.matchMedia('(max-width:760px)');function tabDirection(){document.querySelector('.demo-tabs').setAttribute('aria-orientation',narrow.matches?'horizontal':'vertical');}narrow.addEventListener('change',tabDirection);tabDirection();renderScenario('search');
+let toastTimer;function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$('toast').hidden=true;},3500);}
+document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(b.dataset.copy);toast('검색 예시를 복사했습니다. QuickSearch에 붙여 넣으세요.');}catch{toast('자동 복사가 지원되지 않습니다. 선택된 문장을 복사해 주세요.');const range=document.createRange();range.selectNodeContents(b.firstElementChild);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}}));
